@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import '@fontsource-variable/cairo';
+
+body {
+  font-family: 'Cairo Variable', sans-serif;
+}
+
+@layer base{
+  span,a,label{
+    display: inline-block;
+  }
+}
+
+@layer components{
+  .form-control{
+    @apply w-full bg-gray-100 focus:outline-none focus:border-2 focus:border-blue-500 rounded-lg px-3 py-2 ps-8 border-gray-400/20 border-2
+  }
+
+  .btn{
+    @apply cursor-pointer space-x-1 px-2 py-1  border-1 border-gray-300/30 rounded-xl
+  }
+}
