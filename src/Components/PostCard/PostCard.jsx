@@ -174,14 +174,14 @@ export default function PostCard({ postInfo, numOfComments, getAllPosts }) {
                         {isOpened ? <><div className='absolute bg-white p-2 shadow-md rounded-md mt-2 right-7 top-2 w-40  group-hover:block'>
                             <ul>
                                 <li className=''>
-                                    <Link to={`/update/${postInfo.id}`}>
+                                    <Link className='text-blue-600 hover:text-blue-400' to={`/update/${postInfo.id}`}>
                                         <FontAwesomeIcon icon={faPenToSquare} className='me-2' />
                                         Edit post
                                     </Link>
                                 </li>
                                 <li className='h-0.5 my-1 bg-linear-to-r from-transparent via-gray-300 to-transparent'></li>
                                 <li>
-                                    <button type='button' onClick={handleDeletePost} disabled={isDeleting}>
+                                    <button className='text-red-500 hover:text-red-400' type='button' onClick={handleDeletePost} disabled={isDeleting}>
                                         <FontAwesomeIcon icon={faTrash} className='me-2' />
                                         {isDeleting ? 'Deleting...' : 'Delete post'}
                                     </button>
