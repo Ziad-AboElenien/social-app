@@ -1,5 +1,5 @@
 import AllPosts from "../../Components/AllPosts/AllPosts"
-import { usePosts } from "../../Components/Hooks/UsePosts"
+import { usePosts } from "../../Components/Hooks/usePosts"
 import LeftSidebar from "../../Components/LeftSidebar/LeftSidebar"
 import RightSidebar from "../../Components/RightSidebar/RightSidebar"
 import UploadPost from "../../Components/UploadPost/UploadPost"
