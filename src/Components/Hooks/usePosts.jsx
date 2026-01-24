@@ -10,7 +10,7 @@ export function usePosts() {
     async function getAllPosts() {
         try {
             const options = {
-                url: "https://linked-posts.routemisr.com/posts?limit=50&page=110",
+                url: "https://linked-posts.routemisr.com/posts?limit=50&page=112",
                 method: 'GET',
                 headers: {
                     token
