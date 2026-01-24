@@ -68,11 +68,11 @@ export default function LoginForm() {
 
     return (
         <>
-            <div className="login-form flex justify-center items-center bg-gray-100 p-12">
-                <form onSubmit={formik.handleSubmit} className="bg-white w-3/4 rounded-xl shadow mx-auto p-6 space-y-5">
+            <div className="login-form flex justify-center items-center bg-gray-100 p-4 sm:p-8 md:p-12 min-h-screen">
+                <form onSubmit={formik.handleSubmit} className="bg-white w-full sm:w-4/5 md:w-3/4 lg:w-full rounded-xl shadow mx-auto p-4 sm:p-6 space-y-5 max-w-md">
                     <header className="text-center space-y-1">
-                        <h1 className="text-3xl font-bold ">Login</h1>
-                        <p>You dont have an account? <Link className="text-blue-500" to='/signup'>Sign up</Link> </p>
+                        <h1 className="text-2xl sm:text-3xl font-bold ">Login</h1>
+                        <p className="text-sm sm:text-base">You dont have an account? <Link className="text-blue-500" to='/signup'>Sign up</Link> </p>
                     </header>
 
                     <div className="social-btns flex *:grow gap-3">

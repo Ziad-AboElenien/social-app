@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import x from '../../../assets/images/prof.png'
 import { faCheck, faPenToSquare, faThumbsUp, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons'
+import ConfirmModal from '../ConfirmModal/ConfirmModal'
 import { useContext, useState } from 'react'
 import { AuthContext } from '../../../Context/Auth.context'
 import axios from 'axios'
@@ -40,6 +41,7 @@ export default function Comment({ commentInfo, onCommentUpdated }) {
     const [editContent, setEditContent] = useState(commentInfo.content)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [currentContent, setCurrentContent] = useState(commentInfo.content)
     
     const { token } = useContext(AuthContext)
@@ -86,10 +88,6 @@ export default function Comment({ commentInfo, onCommentUpdated }) {
 
     // Handle delete comment
     async function handleDeleteComment() {
-        if (!window.confirm("Delete this comment?")) {
-            return
-        }
-
         setIsDeleting(true)
         try {
             const response = await axios({
@@ -110,6 +108,7 @@ export default function Comment({ commentInfo, onCommentUpdated }) {
             toast.error(errorMsg)
         } finally {
             setIsDeleting(false)
+            setShowDeleteModal(false)
         }
     }
 
@@ -121,11 +120,11 @@ export default function Comment({ commentInfo, onCommentUpdated }) {
 
     return (
         <>
-            <div className="comment flex gap-2 mt-3">
-                <img src={commentCreatorImage} alt="" className='size-9 rounded-full object-cover' />
-                <div className="comment-body flex-1">
-                    <div className='bg-gray-100 py-3 px-3 rounded-lg'>
-                        <p className='font-semibold text-gray-700'>{commentInfo.commentCreator.name}</p>
+            <div className="comment flex gap-2 mt-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                <img src={commentCreatorImage} alt="" className='size-8 sm:size-9 rounded-full object-cover flex-shrink-0' />
+                <div className="comment-body flex-1 min-w-0">
+                    <div className='bg-gray-100 hover:bg-gray-200 transition-colors duration-200 py-2 sm:py-3 px-3 sm:px-4 rounded-lg'>
+                        <p className='font-semibold text-gray-700 text-sm'>{commentInfo.commentCreator.name}</p>
                         
                         {isEditing ? (
                             <div className="mt-1">
@@ -146,7 +145,7 @@ export default function Comment({ commentInfo, onCommentUpdated }) {
                                         type="button"
                                         onClick={handleUpdateComment}
                                         disabled={isSubmitting}
-                                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1"
+                                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1 transition-colors duration-150"
                                     >
                                         <FontAwesomeIcon icon={faCheck} />
                                         {isSubmitting ? 'Saving...' : 'Save'}
@@ -155,7 +154,7 @@ export default function Comment({ commentInfo, onCommentUpdated }) {
                                         type="button"
                                         onClick={handleCancelEdit}
                                         disabled={isSubmitting}
-                                        className="px-3 py-1 bg-gray-300 text-gray-700 text-xs rounded-lg hover:bg-gray-400 disabled:opacity-50 flex items-center gap-1"
+                                        className="px-3 py-1 bg-gray-300 text-gray-700 text-xs rounded-lg hover:bg-gray-400 disabled:opacity-50 flex items-center gap-1 transition-colors duration-150"
                                     >
                                         <FontAwesomeIcon icon={faTimes} />
                                         Cancel
@@ -163,40 +162,54 @@ export default function Comment({ commentInfo, onCommentUpdated }) {
                                 </div>
                             </div>
                         ) : (
-                            <span className='text-gray-600 text-sm'>{currentContent}</span>
+                            <span className='text-gray-600 text-sm break-words'>{currentContent}</span>
                         )}
                     </div>
                     
-                    <div className='text-sm text-gray-600 space-x-3 ms-1 mt-1'>
-                        <span className="hover:scale-105 transition-all duration-300 cursor-pointer">
-                            <FontAwesomeIcon icon={faThumbsUp} className='text-gray-600' />
-                        </span>
-                        <time className="text-xs">{formatTimeAgo(commentInfo.createdAt)}</time>
+                    <div className='text-xs sm:text-sm text-gray-600 space-x-2 sm:space-x-3 ms-1 mt-1 flex flex-wrap items-center'>
+                        <button className="hover:bg-blue-100 px-2 py-1 rounded transition-colors duration-150 flex items-center gap-1">
+                            <FontAwesomeIcon icon={faThumbsUp} className='text-gray-600 text-xs' />
+                            <span className='hidden sm:inline'>Like</span>
+                        </button>
+                        <time className="text-xs text-gray-500">{formatTimeAgo(commentInfo.createdAt)}</time>
                         
                         {!isEditing && (
                             <>
                                 <button 
                                     type="button" 
                                     onClick={() => setIsEditing(true)}
-                                    className="text-blue-600 hover:text-blue-700 hover:underline"
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 px-2 py-1 rounded transition-colors duration-150 flex items-center gap-1 text-xs"
                                 >
-                                    <FontAwesomeIcon icon={faPenToSquare} className="mr-1" />
-                                    Edit
+                                    <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
+                                    <span>Edit</span>
                                 </button>
                                 <button 
                                     type="button" 
-                                    onClick={handleDeleteComment}
+                                    onClick={() => setShowDeleteModal(true)}
                                     disabled={isDeleting}
-                                    className="text-red-600 hover:text-red-700 hover:underline disabled:opacity-50"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-100 px-2 py-1 rounded transition-colors duration-150 disabled:opacity-50 flex items-center gap-1 text-xs"
                                 >
-                                    <FontAwesomeIcon icon={faTrash} className="mr-1" />
-                                    {isDeleting ? 'Deleting...' : 'Delete'}
+                                    <FontAwesomeIcon icon={faTrash} className="text-xs" />
+                                    <span>Delete</span>
                                 </button>
                             </>
                         )}
                     </div>
                 </div>
             </div>
+            
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal 
+                isOpen={showDeleteModal}
+                title="Delete Comment"
+                message="Are you sure you want to delete this comment? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+                isLoading={isDeleting}
+                onConfirm={handleDeleteComment}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </>
     )
 }

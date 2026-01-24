@@ -75,13 +75,13 @@ export default function UploadPost({ getAllPosts }) {
 
     return (
         <>
-            <form onSubmit={formik.handleSubmit} className="bg-white p-5 mt-5 rounded-xl shadow-md border border-gray-100" >
+            <form onSubmit={formik.handleSubmit} className="bg-white p-3 sm:p-5 mt-3 sm:mt-5 rounded-lg sm:rounded-xl shadow-md border border-gray-100" >
                 {/* Header */}
-                <header className='flex gap-3 items-center pb-4 border-b border-gray-100'>
-                    <img className='size-12 rounded-full object-cover ring-2 ring-blue-500 ring-offset-2' src={x} alt="Profile" />
-                    <div className="flex-1">
-                        <p className='font-semibold text-gray-800'>Create a post</p>
-                        <p className='text-sm text-gray-500'>Share your thoughts with the world</p>
+                <header className='flex gap-2 sm:gap-3 items-center pb-2 sm:pb-4 border-b border-gray-100'>
+                    <img className='size-9 sm:size-12 rounded-full object-cover ring-2 ring-blue-500 ring-offset-2' src={x} alt="Profile" />
+                    <div className="flex-1 min-w-0">
+                        <p className='font-semibold text-gray-800 text-sm sm:text-base'>Create a post</p>
+                        <p className='text-xs sm:text-sm text-gray-500'>Share your thoughts</p>
                     </div>
                 </header>
 
@@ -97,7 +97,7 @@ export default function UploadPost({ getAllPosts }) {
                         error={formik.errors.body}
                         touched={formik.touched.body}
                         placeholder="What's on your mind?"
-                        className={`w-full resize-none bg-gray-50 border-2 border-transparent rounded-xl p-4 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300 text-gray-700 placeholder-gray-400 ${isExpanded ? 'h-32' : 'h-20'}`}
+                        className={`w-full resize-none bg-gray-50 border-2 border-transparent rounded-lg sm:rounded-xl p-2 sm:p-4 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300 text-sm sm:text-base text-gray-700 placeholder-gray-400 ${isExpanded ? 'h-24 sm:h-32' : 'h-16 sm:h-20'}`}
                     ></textarea>
                     
                     {formik.errors.body && formik.touched.body ? (
@@ -137,10 +137,10 @@ export default function UploadPost({ getAllPosts }) {
                     ) : null}
 
                     {/* Action Buttons */}
-                    <div className="flex justify-between items-center border-t pt-4 mt-4 border-gray-100">
-                        <div className="flex gap-1">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-t pt-2 sm:pt-4 mt-3 sm:mt-4 border-gray-100 gap-2 sm:gap-0">
+                        <div className="flex gap-1 overflow-x-auto pb-2 sm:pb-0 -mx-1 px-1">
                             {/* Image Upload */}
-                            <label htmlFor="image" className="cursor-pointer">
+                            <label htmlFor="image" className="cursor-pointer flex-shrink-0">
                                 <input
                                     id='image'
                                     name='image'
@@ -157,28 +157,28 @@ export default function UploadPost({ getAllPosts }) {
                                     }}
                                     onBlur={formik.handleBlur}
                                 />
-                                <div className='flex items-center gap-1 px-2 py-1.5 bg-green-50 text-green-600 rounded-full hover:bg-green-100 transition-all duration-300 text-xs'>
+                                <div className='flex items-center gap-1 px-2 py-1.5 bg-green-50 text-green-600 rounded-full hover:bg-green-100 transition-all duration-300 text-xs whitespace-nowrap'>
                                     <FontAwesomeIcon icon={faImage} />
-                                    <span>Photo</span>
+                                    <span className='hidden sm:inline'>Photo</span>
                                 </div>
                             </label>
 
                             {/* Video Button (static) */}
-                            <button type="button" className='flex items-center gap-1 px-2 py-1.5 bg-purple-50 text-purple-600 rounded-full hover:bg-purple-100 transition-all duration-300 text-xs'>
+                            <button type="button" className='flex items-center gap-1 px-2 py-1.5 bg-purple-50 text-purple-600 rounded-full hover:bg-purple-100 transition-all duration-300 text-xs whitespace-nowrap'>
                                 <FontAwesomeIcon icon={faVideo} />
-                                <span>Video</span>
+                                <span className='hidden sm:inline'>Video</span>
                             </button>
 
                             {/* Emoji Button (static) */}
-                            <button type="button" className='flex items-center gap-1 px-2 py-1.5 bg-yellow-50 text-yellow-600 rounded-full hover:bg-yellow-100 transition-all duration-300 text-xs'>
+                            <button type="button" className='flex items-center gap-1 px-2 py-1.5 bg-yellow-50 text-yellow-600 rounded-full hover:bg-yellow-100 transition-all duration-300 text-xs whitespace-nowrap'>
                                 <FontAwesomeIcon icon={faSmile} />
-                                <span>Feeling</span>
+                                <span className='hidden sm:inline'>Feeling</span>
                             </button>
 
                             {/* Location Button (static) */}
-                            <button type="button" className='flex items-center gap-1 px-2 py-1.5 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-all duration-300 text-xs'>
+                            <button type="button" className='flex items-center gap-1 px-2 py-1.5 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-all duration-300 text-xs whitespace-nowrap'>
                                 <FontAwesomeIcon icon={faMapMarkerAlt} />
-                                <span>Location</span>
+                                <span className='hidden sm:inline'>Location</span>
                             </button>
                         </div>
 
@@ -186,7 +186,7 @@ export default function UploadPost({ getAllPosts }) {
                         <button 
                             type='submit' 
                             disabled={!formik.values.body.trim()}
-                            className='flex items-center gap-2 px-5 py-2 bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-full font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 text-sm'
+                            className='w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-full font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 text-sm'
                         >
                             <FontAwesomeIcon icon={faPaperPlane} />
                             <span>Post</span>

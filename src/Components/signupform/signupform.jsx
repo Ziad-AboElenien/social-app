@@ -70,11 +70,11 @@ export default function SignUpForm() {
 
     return (
         <>
-            <div className="signup-form flex justify-center items-center bg-gray-100 p-12">
-                <form onSubmit={formik.handleSubmit} className="bg-white w-3/4 rounded-xl shadow mx-auto p-6 space-y-5">
+            <div className="signup-form flex justify-center items-center bg-gray-100 p-4 sm:p-8 md:p-12 min-h-screen">
+                <form onSubmit={formik.handleSubmit} className="bg-white w-full sm:w-4/5 md:w-3/4 lg:w-full rounded-xl shadow mx-auto p-4 sm:p-6 space-y-5 max-w-md">
                     <header className="text-center space-y-1">
-                        <h1 className="text-3xl font-bold ">Create account</h1>
-                        <p>Already have an account? <Link className="text-blue-500" to='/login'>Sign in</Link> </p>
+                        <h1 className="text-2xl sm:text-3xl font-bold ">Create account</h1>
+                        <p className="text-sm sm:text-base">Already have an account? <Link className="text-blue-500" to='/login'>Sign in</Link> </p>
                     </header>
 
                     <div className="social-btns flex *:grow gap-3">
@@ -155,7 +155,7 @@ export default function SignUpForm() {
                             textField='rePassword'
                         />
 
-                        <div className="div grid lg:grid-cols-2 gap-2 ">
+                        <div className="div grid grid-cols-1 sm:grid-cols-2 gap-2 ">
 
                             <FormField
                                 elementType='input'

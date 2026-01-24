@@ -3,6 +3,7 @@ import x from '../../assets/images/prof.png'
 import { faComment, faEllipsisVertical, faHeart, faPaperPlane, faShare, faThumbsUp, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
 import Comment from '../ui/comment/Comment'
+import ConfirmModal from '../ui/ConfirmModal/ConfirmModal'
 import { Link } from 'react-router';
 import { useFormik } from 'formik';
 import { useContext, useState } from 'react';
@@ -45,6 +46,7 @@ export default function PostCard({ postInfo, numOfComments, getAllPosts }) {
     const [isAllCommentsVisible, setIsAllCommentsVisible] = useState(false);
     const [isOpened, setIsOpened] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [comments, setComments] = useState(postInfo.comments || []);
     const [selectedReaction, setSelectedReaction] = useState(null);
     const { token } = useContext(AuthContext);
@@ -124,10 +126,6 @@ export default function PostCard({ postInfo, numOfComments, getAllPosts }) {
     })
 
     async function handleDeletePost() {
-        if (!window.confirm("Are you sure you want to delete this post?")) {
-            return;
-        }
-        
         setIsDeleting(true);
         try {
             const options = {
@@ -151,6 +149,7 @@ export default function PostCard({ postInfo, numOfComments, getAllPosts }) {
             toast.error(errorMsg);
         } finally {
             setIsDeleting(false);
+            setShowDeleteModal(false);
             setIsOpened(false);
         }
     }
@@ -167,27 +166,29 @@ export default function PostCard({ postInfo, numOfComments, getAllPosts }) {
                             <span className='block text-gray-500 text-sm'>{formatTimeAgo(postInfo.createdAt)}</span>
                         </div>
                     </div>
-                    <div className='relative group'>
-                        <button type='button' className='text-gray-500 hover:bg-gray-200 p-2 rounded-full' onClick={() => setIsOpened(!isOpened)}>
+                    <div className='relative'>
+                        <button type='button' className='text-gray-500 hover:bg-gray-200 p-2 rounded-full transition-all duration-200' onClick={() => setIsOpened(!isOpened)}>
                             <FontAwesomeIcon icon={faEllipsisVertical} />
                         </button>
-                        {isOpened ? <><div className='absolute bg-white p-2 shadow-md rounded-md mt-2 right-7 top-2 w-40  group-hover:block'>
-                            <ul>
-                                <li className=''>
-                                    <Link className='text-blue-600 hover:text-blue-400' to={`/update/${postInfo.id}`}>
-                                        <FontAwesomeIcon icon={faPenToSquare} className='me-2' />
-                                        Edit post
-                                    </Link>
-                                </li>
-                                <li className='h-0.5 my-1 bg-linear-to-r from-transparent via-gray-300 to-transparent'></li>
-                                <li>
-                                    <button className='text-red-500 hover:text-red-400' type='button' onClick={handleDeletePost} disabled={isDeleting}>
-                                        <FontAwesomeIcon icon={faTrash} className='me-2' />
-                                        {isDeleting ? 'Deleting...' : 'Delete post'}
-                                    </button>
-                                </li>
-                            </ul>
-                        </div></> : null}
+                        {isOpened && (
+                            <div className='absolute bg-white shadow-xl rounded-xl mt-2 right-0 w-44 z-50 border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200' onClick={() => setIsOpened(false)}>
+                                <ul className='py-1'>
+                                    <li className='hover:bg-blue-50 transition-colors duration-150'>
+                                        <Link className='text-blue-600 hover:text-blue-700 px-4 py-2.5 flex items-center gap-2 w-full text-sm font-medium' to={`/update/${postInfo.id}`}>
+                                            <FontAwesomeIcon icon={faPenToSquare} className='w-4' />
+                                            <span>Edit post</span>
+                                        </Link>
+                                    </li>
+                                    <li className='h-px my-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent'></li>
+                                    <li className='hover:bg-red-50 transition-colors duration-150'>
+                                        <button className='text-red-600 hover:text-red-700 px-4 py-2.5 w-full text-left flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed' type='button' onClick={() => setShowDeleteModal(true)} disabled={isDeleting}>
+                                            <FontAwesomeIcon icon={faTrash} className='w-4' />
+                                            <span>Delete post</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        )}
                     </div>
                 </header>
                 <div className="post-body">
@@ -271,6 +272,19 @@ export default function PostCard({ postInfo, numOfComments, getAllPosts }) {
                     </div>
                 </div>
             </div>
+            
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal 
+                isOpen={showDeleteModal}
+                title="Delete Post"
+                message="Are you sure you want to delete this post? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+                isLoading={isDeleting}
+                onConfirm={handleDeletePost}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </>
     )
 }

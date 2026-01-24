@@ -5,7 +5,7 @@ export default function Login() {
     return (
         <>
             <main>
-                <div className="grid lg:grid-cols-2 ">
+                <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
                     {/* signup hero */}
                     <Authhero title={{ head: 'Welcome back', body: 'to SocialHub App' }} desc='Please login to continue connecting with amazing people.' />
 

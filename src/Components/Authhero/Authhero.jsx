@@ -61,7 +61,7 @@ export default function Authhero({
 
     return (
         <>
-            <div className="signuphero space-y-9 min-h-screen text-white p-10" style={{
+            <div className="signuphero space-y-6 sm:space-y-9 min-h-screen text-white p-4 sm:p-6 md:p-10 overflow-hidden" style={{
                 backgroundImage: `linear-gradient(rgba(48, 72, 253, 0.5), rgba(48, 72, 253, 0.5)), url(${bg})`
             }} >
                 <header className="">
@@ -72,13 +72,13 @@ export default function Authhero({
                 </header>
 
                 <div className="title">
-                    <h2 className="text-4xl max-w-96 my-8">{title.head} <span className="bg-linear-to-r from-cyan-300 to-cyan-50 bg-clip-text text-transparent ">{title.body}</span></h2>
-                    <p className="text-sm text-gray-300 max-w-96">{desc}</p>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl max-w-full sm:max-w-96 my-4 sm:my-8">{title.head} <span className="bg-linear-to-r from-cyan-300 to-cyan-50 bg-clip-text text-transparent ">{title.body}</span></h2>
+                    <p className="text-xs sm:text-sm text-gray-300 max-w-full sm:max-w-96">{desc}</p>
                 </div>
 
                 <div className="sr-only">application features</div>
-                <div className="features">
-                    <ul className="grid lg:grid-cols-2 gap-4">
+                <div className="features hidden md:block">
+                    <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
                         {features.map((feature ,index) => {
                             return (
                                 <li key={index} className="flex items-center gap-x-3 bg-white/30 px-3 py-2 rounded-lg backdrop-blur-2xl hover:scale-105 transition-transform duration-300">
@@ -93,8 +93,8 @@ export default function Authhero({
                     </ul>
                 </div>
 
-                <div className="numbers">
-                    <ul className="flex gap-x-5">
+                <div className="numbers hidden md:block">
+                    <ul className="flex gap-x-2 sm:gap-x-5 overflow-x-auto">
                         {nums.map((num ,index) => {
                             return (
                                 <li key={index}>
