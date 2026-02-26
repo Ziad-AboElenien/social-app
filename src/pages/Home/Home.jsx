@@ -14,8 +14,8 @@ export default function Home() {
         <PageNavbar title="Home" showBack={false} />
       </div>
       
-      <div className="container mx-auto max-w-6xl px-4 pt-4 lg:pt-0">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className=" mx-auto  px-4 pt-4 lg:pt-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
           {/* Left Sidebar */}
           <div className="hidden lg:block lg:col-span-3">
             <LeftSidebar />

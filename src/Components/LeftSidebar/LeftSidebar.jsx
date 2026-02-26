@@ -32,12 +32,12 @@ export default function LeftSidebar() {
     // Fetch user profile data
     async function getUserData() {
         try {
-            const { data } = await axios.get('https://linked-posts.routemisr.com/users/profile-data', {
+            const { data } = await axios.get('https://route-posts.routemisr.com/users/profile-data', {
                 headers: { token }
             })
-            setUser(data.user)
+            setUser(data.data.user)
             // Get user posts count
-            getUserPostsCount(data.user._id)
+            getUserPostsCount(data.data.user._id)
         } catch (error) {
             console.log("Error fetching user data")
         }
@@ -45,10 +45,10 @@ export default function LeftSidebar() {
 
     async function getUserPostsCount(userId) {
         try {
-            const { data } = await axios.get(`https://linked-posts.routemisr.com/users/${userId}/posts?limit=100`, {
+            const { data } = await axios.get(`https://route-posts.routemisr.com/users/${userId}/posts?limit=100`, {
                 headers: { token }
             })
-            setPostsCount(data.posts?.length || 0)
+            setPostsCount(data.data.posts?.length || 0)
         } catch (error) {
             console.log("Error fetching posts count")
         }
@@ -63,7 +63,7 @@ export default function LeftSidebar() {
     const userHandle = user?.name ? `@${user.name.toLowerCase().replace(/\s+/g, '')}` : ''
 
     return (
-        <aside className="bg-white rounded-lg shadow-md p-4 sticky top-5">
+        <aside className=" rounded-lg  p-4 sticky top-5">
             {/* Profile Section */}
             <div className="profile-section pb-4 border-b border-gray-200">
                 <NavLink to="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">

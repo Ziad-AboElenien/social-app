@@ -10,7 +10,8 @@ import axios from "axios";
 import { useState } from "react";
 
 export default function SignUpForm() {
-    const [isExist , setIsExist]=useState(null)
+    const [isExistEmail, setIsExistEmail] = useState(null)
+    const [isExistUsername, setIsExistUsername] = useState(null)
 
     const navigate = useNavigate()
 
@@ -18,23 +19,26 @@ export default function SignUpForm() {
 
     const signupSchema = yup.object({
         name: yup.string().required('name is required').min(3, "must be at least 3 characters").max(20, 'must be at most 20 characters'),
+        username: yup.string().required('username is required').min(3, "must be at least 3 characters").max(20, 'must be at most 20 characters').matches(/^[a-z0-9_]{3,30}$/, 'username must contain only lowercase letters, numbers and underscores'),
         email: yup.string().required('email is required').email('must be a valid email address'),
         password: yup.string().required('password is required').matches(passwordRegix, 'password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character'),
         rePassword: yup.string().required('please confirm your password').oneOf([yup.ref('password')], 'passwords must match'),
-        dateOfBirth:yup.string().required('date of birth is required'),
+        dateOfBirth: yup.string().required('date of birth is required'),
         gender: yup.string().required('gender is required').oneOf(['male', 'female'], 'please select a valid gender')
     })
 
     async function handleSubmit(values) {
         try {
             const options = {
-                url: 'https://linked-posts.routemisr.com/users/signup',
+                url: 'https://route-posts.routemisr.com/users/signup',
                 method: 'POST',
                 data: values
             }
+            console.log(options)
             const { data } = await axios.request(options)
+            console.log(data)
 
-            if (data.message === 'success') {
+            if (data.success) {
                 toast.success('Your Account successfuly created')
 
                 setTimeout(() => {
@@ -44,7 +48,16 @@ export default function SignUpForm() {
         } catch (error) {
             console.log("your in ther catch block ❌")
             console.log(error)
-            setIsExist(error.response.data.error)
+            if(error.response.data.errors.includes('user already exists'))
+            {
+                setIsExistEmail(error.response.data.errors)
+                setIsExistUsername(null)
+            }else if(error.response.data.errors.includes('username already exists'))
+            {
+                setIsExistUsername(error.response.data.errors)
+                setIsExistEmail(null)
+            }
+
         }
 
 
@@ -55,6 +68,7 @@ export default function SignUpForm() {
         {
             initialValues: {
                 name: "",
+                username: "",
                 email: "",
                 password: "",
                 rePassword: "",
@@ -86,7 +100,7 @@ export default function SignUpForm() {
                         <p className="relative mx-auto w-fit text-sm text-gray-500 before:absolute before:w-4/6 before:h-px before:bg-linear-to-r before:from-transparent before:via-gray-400 before:to-transparent before:right-11/10 before:top-1/2 before:-translate-y-0.5 after:absolute after:w-4/6 after:h-px after:bg-linear-to-r after:from-transparent after:via-gray-400 after:to-transparent after:left-11/10 after:top-1/2 after:-translate-y-0.5">or continue with email</p>
                     </div>
 
-                    <div className="form-body space-y-4">
+                    <div className="relative form-body space-y-4">
 
                         <FormField
                             elementType='input'
@@ -106,13 +120,30 @@ export default function SignUpForm() {
 
                         <FormField
                             elementType='input'
+                            type='text'
+                            id='username'
+                            name='username'
+                            value={formik.values.username}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            placeHolder='Enter Your Username'
+                            iconName={faUser}
+                            textField='Username'
+                            touched={formik.touched.username}
+                            errors={formik.errors.username}
+                            isExist={isExistUsername}
+                        />
+
+
+                        <FormField
+                            elementType='input'
                             type='email'
                             id='email'
                             name='email'
                             value={formik.values.email}
                             touched={formik.touched.email}
                             errors={formik.errors.email}
-                            onChange={(e)=>{
+                            onChange={(e) => {
                                 formik.handleChange(e)
                                 setIsExist(null)
                             }}
@@ -120,7 +151,7 @@ export default function SignUpForm() {
                             placeHolder='name@example.com'
                             iconName={faEnvelope}
                             textField='Email Address'
-                            accIsExist={isExist}
+                            isExist={isExistEmail}
                         />
 
 

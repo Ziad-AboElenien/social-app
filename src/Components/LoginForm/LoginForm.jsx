@@ -29,15 +29,15 @@ export default function LoginForm() {
     async function handleSubmit(values , { setSubmitting }) {
         try {
             const options = {
-                url: 'https://linked-posts.routemisr.com/users/signin',
+                url: 'https://route-posts.routemisr.com/users/signin',
                 method: 'POST',
                 data: values
             }
             const { data } = await axios.request(options)
 
-            if (data.message === 'success') {
-                setToken(data.token)
-                localStorage.setItem('token', data.token)
+            if (data.success) {
+                setToken(data.data.token)
+                localStorage.setItem('token', data.data.token)
                 toast.success('Welcome Back!')
 
                 setTimeout(() => {

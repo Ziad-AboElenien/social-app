@@ -1,280 +1,417 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import x from '../../assets/images/prof.png'
-import { faComment, faEllipsisVertical, faHeart, faPaperPlane, faShare, faThumbsUp, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faComment, faEllipsisH, faPaperPlane, faShare, faThumbsUp, faTrash, faImage, faFaceSmile } from '@fortawesome/free-solid-svg-icons'
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
 import Comment from '../ui/comment/Comment'
 import ConfirmModal from '../ui/ConfirmModal/ConfirmModal'
-import { Link } from 'react-router';
-import { useFormik } from 'formik';
-import { useContext, useState } from 'react';
-import { AuthContext } from '../../Context/Auth.context';
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import { Link } from 'react-router'
+import { useFormik } from 'formik'
+import { useContext, useState, useEffect, useRef } from 'react'
+import { AuthContext } from '../../Context/Auth.context'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 
-// Format time ago function
 function formatTimeAgo(dateString) {
-    const now = new Date();
-    const date = new Date(dateString);
-    const seconds = Math.floor((now - date) / 1000);
-    
-    if (seconds < 60) return 'Just now';
-    
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    
-    const days = Math.floor(hours / 24);
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days}d ago`;
-    
-    const weeks = Math.floor(days / 7);
-    if (weeks < 4) return `${weeks}w ago`;
-    
-    // For older posts, show the date
-    return date.toLocaleDateString('en-US', { 
-        month: 'short', 
+    const now = new Date()
+    const date = new Date(dateString)
+    const seconds = Math.floor((now - date) / 1000)
+    if (seconds < 60) return 'Just now'
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return `${minutes}m`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours}h`
+    const days = Math.floor(hours / 24)
+    if (days === 1) return 'Yesterday'
+    if (days < 7) return `${days}d`
+    const weeks = Math.floor(days / 7)
+    if (weeks < 4) return `${weeks}w`
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
         day: 'numeric',
         year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-    });
+    })
 }
 
-
 export default function PostCard({ postInfo, numOfComments, getAllPosts }) {
+    const [user, setUser] = useState(null)
+    const [isAllCommentsVisible, setIsAllCommentsVisible] = useState(false)
+    const [isOpened, setIsOpened] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [comments, setComments] = useState(postInfo.comments || [])
+    const [selectedReaction, setSelectedReaction] = useState(null)
+    const [showReactionPicker, setShowReactionPicker] = useState(false)
+    const [isLiked, setIsLiked] = useState(postInfo.isLiked || false)
+    const [likesCount, setLikesCount] = useState(postInfo.likes?.length || postInfo.likesCount || 0)
 
-    const [isAllCommentsVisible, setIsAllCommentsVisible] = useState(false);
-    const [isOpened, setIsOpened] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [comments, setComments] = useState(postInfo.comments || []);
-    const [selectedReaction, setSelectedReaction] = useState(null);
-    const { token } = useContext(AuthContext);
+    const menuRef = useRef(null)
+    const reactionTimeout = useRef(null)
+    const { token } = useContext(AuthContext)
 
     const reactions = [
-        { emoji: '👍', name: 'Like', color: 'text-blue-600' },
-        { emoji: '❤️', name: 'Love', color: 'text-red-500' },
-        { emoji: '😂', name: 'Haha', color: 'text-yellow-500' },
-        { emoji: '😮', name: 'Wow', color: 'text-yellow-500' },
-        { emoji: '😢', name: 'Sad', color: 'text-yellow-500' },
-        { emoji: '😡', name: 'Angry', color: 'text-orange-500' },
-    ];
+        { emoji: '👍', name: 'Like' },
+        { emoji: '❤️', name: 'Love' },
+        { emoji: '😂', name: 'Haha' },
+        { emoji: '😮', name: 'Wow' },
+        { emoji: '😢', name: 'Sad' },
+        { emoji: '😡', name: 'Angry' },
+    ]
 
     function handleReaction(reaction) {
         if (selectedReaction?.name === reaction.name) {
-            setSelectedReaction(null); // Remove reaction if clicked again
+            setSelectedReaction(null)
         } else {
-            setSelectedReaction(reaction);
+            setSelectedReaction(reaction)
         }
+        setShowReactionPicker(false)
     }
 
     async function fetchComments() {
         try {
-            const options = {
-                url: `https://linked-posts.routemisr.com/posts/${postInfo.id}/comments`,
-                method: "GET",
-                headers: {
-                    token
-                }
-            }
-            const { data } = await axios.request(options);
-            setComments(data.comments || []);
+            const { data } = await axios.get(
+                `https://route-posts.routemisr.com/posts/${postInfo.id}/comments`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            )
+            setComments(data.data.comments || [])
         } catch (error) {
-            console.log("error.message");
+            toast.error(error.response?.data?.message || 'Failed to fetch comments')
         }
     }
 
-    // Refresh comments when a comment is updated or deleted
-    function handleCommentUpdated() {
-        fetchComments();
+    async function fetchPostLikes() {
+        try {
+            const { data } = await axios.get(
+                `https://route-posts.routemisr.com/posts/${postInfo.id}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            )
+            const post = data.data?.post || data.data || {}
+            setLikesCount(post.likes?.length || post.likesCount || 0)
+            setIsLiked(post.isLiked || false)
+        } catch (error) {
+            console.error('Failed to fetch post likes:', error)
+        }
     }
 
+    async function handleLikePost() {
+        setIsLiked(prev => !prev)
+        setLikesCount(prev => isLiked ? Math.max(0, prev - 1) : prev + 1)
+        try {
+            await axios({
+                method: 'PUT',
+                url: `https://route-posts.routemisr.com/posts/${postInfo.id}/like`,
+                headers: { Authorization: `Bearer ${token}` }
+            })
+        } catch (error) {
+            setIsLiked(prev => !prev)
+            setLikesCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))
+            toast.error(error.response?.data?.message || 'Failed to like post')
+        }
+    }
+    // Fetch user profile data
+    async function getUserData() {
+        try {
+            const { data } = await axios.get('https://route-posts.routemisr.com/users/profile-data', {
+                headers: { token }
+            })
+            setUser(data.data.user)
+        } catch (error) {
+            console.log("Error fetching user data")
+        }
+    }
+
+    useEffect(() => {
+        fetchComments()
+        fetchPostLikes()
+        getUserData()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [postInfo.id])
+
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setIsOpened(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    function handleCommentUpdated() {
+        fetchComments()
+    }
 
     async function handleSubmit(values) {
         try {
-            const options = {
-                url: "https://linked-posts.routemisr.com/comments",
-                method: "POST",
-                headers: {
-                    token
-                },
-                data: values
+            const formData = new FormData()
+            formData.append('content', values.content)
+            if (values.image) formData.append('image', values.image)
+            const { data } = await axios.post(
+                `https://route-posts.routemisr.com/posts/${postInfo.id}/comments`,
+                formData,
+                { headers: { Authorization: `Bearer ${token}` } }
+            )
+            if (data?.success) {
+                toast.success('Comment added')
+                formik.resetForm()
+                fetchComments()
+            } else {
+                toast.error(data?.message || 'Failed to add comment')
             }
-
-            const { data } = await axios.request(options);
-            console.log(data)
-            formik.resetForm();
-            fetchComments(); // Refresh comments after adding
-
         } catch (error) {
-            console.log("error.message");
+            toast.error(error.response?.data?.message || error.message || 'Failed to add comment')
         }
     }
-
-    const postCreatorImage =
-        postInfo.user.photo.includes('undefined')
-            ? x : postInfo.user.photo
-        ;
-
-    const formik = useFormik({
-        initialValues: {
-            content: "",
-            post: postInfo.id
-        },
-        onSubmit: handleSubmit
-
-    })
 
     async function handleDeletePost() {
-        setIsDeleting(true);
+        setIsDeleting(true)
         try {
-            const options = {
-                url: `https://linked-posts.routemisr.com/posts/${postInfo.id}`,
-                method: 'DELETE',
-                headers: {
-                    token
-                }
-            }
-            const { data } = await axios.request(options);
-            
-            if (data.message === 'success') {
-                toast.success('Post deleted successfully!');
-                if (getAllPosts) {
-                    getAllPosts();
-                }
+            const { data } = await axios.delete(
+                `https://route-posts.routemisr.com/posts/${postInfo.id}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            )
+            if (data.success) {
+                toast.success('Post deleted successfully!')
+                if (getAllPosts) getAllPosts()
             }
         } catch (error) {
-            console.error("Delete error:", error);
-            const errorMsg = error.response?.data?.error || "You can only delete your own posts";
-            toast.error(errorMsg);
+            toast.error(error.response?.data?.error || 'You can only delete your own posts')
         } finally {
-            setIsDeleting(false);
-            setShowDeleteModal(false);
-            setIsOpened(false);
+            setIsDeleting(false)
+            setShowDeleteModal(false)
+            setIsOpened(false)
         }
     }
+
+    const postCreatorImage = postInfo.user.photo.includes('undefined') ? x : postInfo.user.photo
+
+    const formik = useFormik({
+        initialValues: { content: '', image: null },
+        onSubmit: handleSubmit
+    })
 
     return (
         <>
-            <div className="card bg-white p-8 my-4 rounded-lg shadow-md">
-                <header className='flex justify-between'>
-                    <div className="info flex  gap-2 items-center">
+            <div className="bg-white max-w-2xl mx-auto rounded-xl shadow-sm border border-gray-200 mb-4" style={{ fontFamily: 'Segoe UI, Helvetica, Arial, sans-serif' }}>
 
-                        <img src={postCreatorImage} alt="" className='size-12 rounded-full object-cover' />
-                        <div className="details">
-                            <p className='font-semibold pb-0'>{postInfo.user.name}</p>
-                            <span className='block text-gray-500 text-sm'>{formatTimeAgo(postInfo.createdAt)}</span>
+                {/* ── Header ── */}
+                <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                    <div className="flex items-center gap-2">
+                        <img src={postCreatorImage} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+                        <div>
+                            <p className="font-semibold text-[15px] text-gray-900 leading-tight">{postInfo.user.name}</p>
+                            <p className="text-[13px] text-gray-500 flex items-center gap-1">
+                                {formatTimeAgo(postInfo.createdAt)}
+                                <span>·</span>
+                                <span>🌐 Public</span>
+                            </p>
                         </div>
                     </div>
-                    <div className='relative'>
-                        <button type='button' className='text-gray-500 hover:bg-gray-200 p-2 rounded-full transition-all duration-200' onClick={() => setIsOpened(!isOpened)}>
-                            <FontAwesomeIcon icon={faEllipsisVertical} />
+
+                    {/* 3-dot menu */}
+                    <div className="relative" ref={menuRef}>
+                        <button
+                            type="button"
+                            onClick={() => setIsOpened(!isOpened)}
+                            className="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
+                        >
+                            <FontAwesomeIcon icon={faEllipsisH} />
                         </button>
                         {isOpened && (
-                            <div className='absolute bg-white shadow-xl rounded-xl mt-2 right-0 w-44 z-50 border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200' onClick={() => setIsOpened(false)}>
-                                <ul className='py-1'>
-                                    <li className='hover:bg-blue-50 transition-colors duration-150'>
-                                        <Link className='text-blue-600 hover:text-blue-700 px-4 py-2.5 flex items-center gap-2 w-full text-sm font-medium' to={`/update/${postInfo.id}`}>
-                                            <FontAwesomeIcon icon={faPenToSquare} className='w-4' />
-                                            <span>Edit post</span>
-                                        </Link>
-                                    </li>
-                                    <li className='h-px my-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent'></li>
-                                    <li className='hover:bg-red-50 transition-colors duration-150'>
-                                        <button className='text-red-600 hover:text-red-700 px-4 py-2.5 w-full text-left flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed' type='button' onClick={() => setShowDeleteModal(true)} disabled={isDeleting}>
-                                            <FontAwesomeIcon icon={faTrash} className='w-4' />
-                                            <span>Delete post</span>
-                                        </button>
-                                    </li>
-                                </ul>
+                            <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-xl w-48 z-50 overflow-hidden">
+                                <Link
+                                    to={`/update/${postInfo.id}`}
+                                    onClick={() => setIsOpened(false)}
+                                    className="flex items-center gap-3 px-4 py-2.5 text-[15px] text-gray-800 hover:bg-gray-100 transition-colors"
+                                >
+                                    <FontAwesomeIcon icon={faPenToSquare} className="text-gray-600" />
+                                    Edit post
+                                </Link>
+                                <div className="h-px bg-gray-100 mx-2" />
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowDeleteModal(true); setIsOpened(false) }}
+                                    disabled={isDeleting}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-[15px] text-red-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                                >
+                                    <FontAwesomeIcon icon={faTrash} />
+                                    Delete post
+                                </button>
                             </div>
                         )}
                     </div>
-                </header>
-                <div className="post-body">
-                    <figure>
-                        <figcaption>
-                            <p className='my-4'>{postInfo.body}</p>
-                        </figcaption>
-                        <div className='-mx-8'>
-                            {postInfo.image ? (<img src={postInfo.image} className='w-full h-140 object-cover' alt="" />) : null}
-                        </div>
-                    </figure>
-                    <div className="likes-and-comment flex justify-between py-2">
-                        <div className="icons">
-                            <button className='text-blue-600'>
-                                <FontAwesomeIcon icon={faThumbsUp} />
-                            </button>
-                            <button className='text-red-600'>
-                                <FontAwesomeIcon icon={faHeart} />
-                            </button>
-                            <span className='text-gray-600 text-sm ps-1'>0 likes</span>
-                        </div>
-                        <span className='text-gray-600 text-sm'>{comments.length} comments</span>
+                </div>
+
+                {/* ── Body ── */}
+                {postInfo.body && (
+                    <p className="px-4 pb-3 text-[15px] text-gray-900 leading-relaxed whitespace-pre-line">{postInfo.body}</p>
+                )}
+                {postInfo.image && (
+                    <img src={postInfo.image} alt="post" className="w-full object-cover" style={{ maxHeight: 500 }} />
+                )}
+
+                {/* ── Stats row ── */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px] text-gray-500">
+                    <div className="flex items-center gap-1">
+                        <span className="w-[18px] h-[18px] rounded-full bg-blue-500 inline-flex items-center justify-center text-white text-[10px]">👍</span>
+                        <span>{likesCount} likes</span>
                     </div>
-                    <div className="reacts flex justify-around pt-2 border-y border-gray-300/50 -mx-8 *:text-gray-500 *:text-xl *:grow *:rounded-lg *:py-2 *:text-center">
-                        {/* Like button with reactions */}
-                        <div className="relative group">
-                            <button 
-                                onClick={() => handleReaction(reactions[0])}
-                                className={`w-full hover:bg-gray-100 py-2 rounded-lg transition-colors ${selectedReaction ? selectedReaction.color : ''}`}
-                            >
-                                {selectedReaction ? (
-                                    <span className="text-xl">{selectedReaction.emoji}</span>
-                                ) : (
-                                    <FontAwesomeIcon icon={faThumbsUp} />
-                                )}
-                            </button>
-                            {/* Reactions popup on hover */}
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                <div className="bg-white rounded-full shadow-lg border border-gray-200 px-2 py-1 flex gap-1">
-                                    {reactions.map((reaction) => (
-                                        <button 
-                                            key={reaction.name}
-                                            onClick={() => handleReaction(reaction)}
-                                            className={`text-2xl hover:scale-125 transition-transform p-1 ${selectedReaction?.name === reaction.name ? 'scale-125' : ''}`}
-                                            title={reaction.name}
-                                        >
-                                            {reaction.emoji}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        <button type='button' className="hover:bg-gray-100" onClick={(e) => {
-                            fetchComments()
-                            setIsAllCommentsVisible(!isAllCommentsVisible);
-                        }} >
-                            <FontAwesomeIcon icon={faComment} />
+                    <div className="flex items-center gap-3">
+                        <span>0 shares</span>
+                        <button
+                            onClick={() => { fetchComments(); setIsAllCommentsVisible(!isAllCommentsVisible) }}
+                            className="hover:underline"
+                        >
+                            {comments.length} comments
                         </button>
-                        <button className="hover:bg-gray-100">
-                            <FontAwesomeIcon icon={faShare} />
-                        </button>
-                    </div>
-                    <div className="all-comment">
-                        {isAllCommentsVisible 
-                            ? comments.map((comment, index) => <Comment key={comment._id || index} commentInfo={comment} onCommentUpdated={handleCommentUpdated} />) 
-                            : comments.length > 0 
-                                ? comments.slice(0, numOfComments).map((comment, index) => <Comment key={comment._id || index} commentInfo={comment} onCommentUpdated={handleCommentUpdated} />) 
-                                : (<><div className='text-gray-600 text-center mt-2'>No comment yet. be the first to comment</div></>)}
-                        {comments.length > numOfComments ? <><Link to={`/profile/${postInfo.id}`}><button className='cursor-pointer text-blue-600 mt-2'>View more comments</button></Link></> : null}
-                    </div>
-                    <div className='flex items-center gap-1'>
-                        <input
-                            type="text"
-                            name='content'
-                            id='content'
-                            onChange={formik.handleChange}
-                            value={formik.values.content}
-                            onBlur={formik.handleBlur}
-                            className='bg-gray-100 mt-2 p-2 w-full rounded-full outline-none border border-transparent focus:border-blue-500' placeholder="Write a comment..." />
-                        <button type='button' onClick={formik.handleSubmit} className='text-blue-600 text-xl cursor-pointer p-1 pt-2'><FontAwesomeIcon icon={faPaperPlane} className='' /></button>
+                        <button className="text-blue-600 font-semibold hover:underline">View details</button>
                     </div>
                 </div>
+
+                {/* ── Action buttons ── */}
+                <div className="flex items-center border-t border-b border-gray-200 mx-0 py-0.5">
+                    {/* Like with reaction picker */}
+                    <div
+                        className="relative flex-1"
+                        onMouseEnter={() => {
+                            clearTimeout(reactionTimeout.current)
+                            reactionTimeout.current = setTimeout(() => setShowReactionPicker(true), 400)
+                        }}
+                        onMouseLeave={() => {
+                            clearTimeout(reactionTimeout.current)
+                            reactionTimeout.current = setTimeout(() => setShowReactionPicker(false), 300)
+                        }}
+                    >
+                        {showReactionPicker && (
+                            <div className="absolute bottom-full left-2 mb-2 bg-white rounded-full shadow-xl border border-gray-200 px-3 py-2 flex gap-1 z-50">
+                                {reactions.map(r => (
+                                    <button
+                                        key={r.name}
+                                        onClick={() => handleReaction(r)}
+                                        title={r.name}
+                                        className={`text-2xl transition-transform hover:scale-125 p-0.5 ${selectedReaction?.name === r.name ? 'scale-125' : ''}`}
+                                    >
+                                        {r.emoji}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        <button
+                            onClick={handleLikePost}
+                            className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-[15px] font-semibold hover:bg-gray-100 transition-colors ${isLiked ? 'text-blue-600' : 'text-gray-600'}`}
+                        >
+                            {selectedReaction
+                                ? <span className="text-lg leading-none">{selectedReaction.emoji}</span>
+                                : <FontAwesomeIcon icon={faThumbsUp} />
+                            }
+                            <span>{selectedReaction ? selectedReaction.name : 'Like'}</span>
+                        </button>
+                    </div>
+
+                    <button
+                        onClick={() => { fetchComments(); setIsAllCommentsVisible(!isAllCommentsVisible) }}
+                        className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[15px] font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+                    >
+                        <FontAwesomeIcon icon={faComment} />
+                        <span>Comment</span>
+                    </button>
+
+                    <button className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[15px] font-semibold text-gray-600 hover:bg-gray-100 transition-colors">
+                        <FontAwesomeIcon icon={faShare} />
+                        <span>Share</span>
+                    </button>
+                </div>
+
+                {/* ── Comments Section ── */}
+                <div className="px-4 pt-3 pb-3">
+
+                    {/* Comments header */}
+                    {comments.length > 0 && (
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="font-bold text-[15px] text-gray-900">
+                                Comments{' '}
+                                <span className="bg-gray-200 text-gray-700 text-xs font-bold rounded-full px-2 py-0.5 ml-1">{comments.length}</span>
+                            </span>
+                            <button className="flex items-center gap-1 text-[14px] font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors">
+                                Most relevant <span className="ml-1 text-xs">▾</span>
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Comments list */}
+                    <div className="space-y-1">
+                        {(isAllCommentsVisible ? comments : comments.slice(0, numOfComments)).map((comment, index) => (
+                            <div key={comment._id || index}>
+                                <Comment commentInfo={comment} onCommentUpdated={handleCommentUpdated} />
+                                {comment.image && (
+                                    <img
+                                        src={comment.image}
+                                        alt="comment attachment"
+                                        className="ml-12 mt-1 rounded-xl border border-gray-200 max-w-xs max-h-48 object-cover"
+                                    />
+                                )}
+                            </div>
+                        ))}
+
+                        {comments.length === 0 && (
+                            <p className="text-gray-400 text-center text-sm py-3">No comments yet. Be the first to comment.</p>
+                        )}
+
+                        {!isAllCommentsVisible && comments.length > numOfComments && (
+                            <Link to={`/profile/${postInfo.id}`}>
+                                <button className="text-gray-500 font-semibold text-sm hover:underline mt-1">
+                                    View more comments
+                                </button>
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* ── Comment input ── */}
+                    <form onSubmit={formik.handleSubmit} className="mt-3">
+                        <div className="flex items-center gap-2">
+                            <img src={user.photo} alt="you" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                            <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
+                                <input
+                                    type="text"
+                                    name="content"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.content}
+                                    onBlur={formik.handleBlur}
+                                    placeholder={`Comment as ${postInfo.user.name}...`}
+                                    className="w-full bg-transparent outline-none text-[15px] text-gray-700 placeholder-gray-400"
+                                />
+                            </div>
+                        </div>
+
+                        {/* input actions */}
+                        <div className="flex items-center justify-between mt-2 pl-11">
+                            <div className="flex items-center gap-3">
+                                <label htmlFor={`image-${postInfo.id}`} className="cursor-pointer text-gray-400 hover:text-blue-500 transition-colors">
+                                    <FontAwesomeIcon icon={faImage} className="text-xl" />
+                                </label>
+                                <input
+                                    type="file"
+                                    id={`image-${postInfo.id}`}
+                                    name="image"
+                                    onChange={(e) => formik.setFieldValue('image', e.currentTarget.files[0])}
+                                    className="hidden"
+                                />
+                                <button type="button" className="text-gray-400 hover:text-yellow-500 transition-colors">
+                                    <FontAwesomeIcon icon={faFaceSmile} className="text-xl" />
+                                </button>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={!formik.values.content.trim()}
+                                className="w-9 h-9 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                <FontAwesomeIcon icon={faPaperPlane} className="text-sm" />
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            
-            {/* Delete Confirmation Modal */}
-            <ConfirmModal 
+
+            <ConfirmModal
                 isOpen={showDeleteModal}
                 title="Delete Post"
                 message="Are you sure you want to delete this post? This action cannot be undone."

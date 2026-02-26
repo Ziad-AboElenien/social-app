@@ -20,14 +20,14 @@ export default function Profile() {
     async function getProfileData() {
         try {
             const options = {
-                url: "https://linked-posts.routemisr.com/users/profile-data",
+                url: "https://route-posts.routemisr.com/users/profile-data",
                 method: "GET",
                 headers: { token }
             }
             const { data } = await axios.request(options)
-            setProfile(data.user)
+            setProfile(data.data.user)
             // Fetch user posts after getting profile
-            getUserPosts(data.user._id)
+            getUserPosts(data.data.user._id)
         } catch (error) {
             console.error("Error fetching profile:", error)
             toast.error("Failed to load profile data")
@@ -36,16 +36,19 @@ export default function Profile() {
         }
     }
 
-    async function getUserPosts(userId) {
+    async function getUserPosts(id) {
         setPostsLoading(true)
         try {
             const options = {
-                url: `https://linked-posts.routemisr.com/users/${userId}/posts?limit=50`,
+                url: `https://route-posts.routemisr.com/users/${id}/posts`,
                 method: "GET",
-                headers: { token }
+                headers: { 
+                    token
+                }
+                 
             }
             const { data } = await axios.request(options)
-            setPosts((data.posts || []).reverse())
+            setPosts((data.data.posts || []))
         } catch (error) {
             console.error("Error fetching posts:", error)
         } finally {
@@ -60,15 +63,18 @@ export default function Profile() {
         const formData = new FormData()
         formData.append("photo", file)
 
+
         setUploading(true)
         try {
             const options = {
-                url: "https://linked-posts.routemisr.com/users/upload-photo",
+                url: "https://route-posts.routemisr.com/users/upload-photo",
                 method: "PUT",
                 headers: { token },
                 data: formData
             }
+
             const { data } = await axios.request(options)
+            console.log("photo"  + data)
             if (data.message === "success") {
                 toast.success("Profile photo updated!")
                 getProfileData() // Refresh profile data

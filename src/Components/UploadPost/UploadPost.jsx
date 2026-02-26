@@ -39,7 +39,7 @@ export default function UploadPost({ getAllPosts }) {
                 formData.append("image", values.image)
             }
             const options = {
-                url: `https://linked-posts.routemisr.com/posts`,
+                url: `https://route-posts.routemisr.com/posts`,
                 method: 'POST',
                 headers: {
                     token
@@ -47,7 +47,7 @@ export default function UploadPost({ getAllPosts }) {
                 data: formData
             }
             const { data } = await axios.request(options)
-            if (data.message == 'success') {
+            if (data.success) {
                 formik.resetForm()
                 setImageReview(null);
                 toast.success('your post has successfuly created')
@@ -75,7 +75,7 @@ export default function UploadPost({ getAllPosts }) {
 
     return (
         <>
-            <form onSubmit={formik.handleSubmit} className="bg-white p-3 sm:p-5 mt-3 sm:mt-5 rounded-lg sm:rounded-xl shadow-md border border-gray-100" >
+            <form onSubmit={formik.handleSubmit} className="bg-white p-3 max-w-2xl mx-auto  sm:p-5 mt-3 sm:mt-5 rounded-lg sm:rounded-xl shadow-md border border-gray-100" >
                 {/* Header */}
                 <header className='flex gap-2 sm:gap-3 items-center pb-2 sm:pb-4 border-b border-gray-100'>
                     <img className='size-9 sm:size-12 rounded-full object-cover ring-2 ring-blue-500 ring-offset-2' src={x} alt="Profile" />

@@ -1,6 +1,6 @@
 export default function PostCardSkelton() {
     return (
-        <div className="card bg-white p-8 my-4 rounded-lg shadow-md animate-pulse">
+        <div className="card bg-white max-w-2xl mx-auto p-8 my-4 rounded-lg shadow-md animate-pulse">
             <header className='flex justify-between'>
                 <div className="info flex gap-2 items-center">
                     {/* Profile image skeleton */}

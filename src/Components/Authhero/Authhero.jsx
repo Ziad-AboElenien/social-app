@@ -61,7 +61,7 @@ export default function Authhero({
 
     return (
         <>
-            <div className="signuphero space-y-6 sm:space-y-9 min-h-screen text-white p-4 sm:p-6 md:p-10 overflow-hidden" style={{
+            <div className="signuphero hidden md:block space-y-6 sm:space-y-9 min-h-screen text-white p-4 sm:p-6 md:p-10 overflow-hidden" style={{
                 backgroundImage: `linear-gradient(rgba(48, 72, 253, 0.5), rgba(48, 72, 253, 0.5)), url(${bg})`
             }} >
                 <header className="">
@@ -77,7 +77,7 @@ export default function Authhero({
                 </div>
 
                 <div className="sr-only">application features</div>
-                <div className="features hidden md:block">
+                <div className="features ">
                     <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
                         {features.map((feature ,index) => {
                             return (
@@ -93,8 +93,8 @@ export default function Authhero({
                     </ul>
                 </div>
 
-                <div className="numbers hidden md:block">
-                    <ul className="flex gap-x-2 sm:gap-x-5 overflow-x-auto">
+                <div className="numbers ">
+                    <ul className="flex gap-x-2 sm:gap-x-5 lg:gap-x-10">
                         {nums.map((num ,index) => {
                             return (
                                 <li key={index}>

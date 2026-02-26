@@ -10,16 +10,14 @@ export function usePosts() {
     async function getAllPosts() {
         try {
             const options = {
-                url: "https://linked-posts.routemisr.com/posts?limit=50&page=112",
+                url: "https://route-posts.routemisr.com/posts",
                 method: 'GET',
                 headers: {
                     token
                 }
             }
             const { data } = await axios.request(options)
-            setPosts(data.posts.reverse())
-            console.log(data);
-
+            setPosts(data.data.posts.reverse())
         } catch (error) {
             console.log(error.message)
         }
