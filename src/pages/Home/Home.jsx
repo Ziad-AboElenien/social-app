@@ -3,19 +3,13 @@ import { usePosts } from "../../Components/Hooks/usePosts"
 import LeftSidebar from "../../Components/LeftSidebar/LeftSidebar"
 import RightSidebar from "../../Components/RightSidebar/RightSidebar"
 import UploadPost from "../../Components/UploadPost/UploadPost"
-import PageNavbar from "../../Components/PageNavbar/PageNavbar"
 
 export default function Home() {
-  const {posts ,getAllPosts} =usePosts()
+  const {posts ,getAllPosts} =usePosts("all")
   return (
     <>
-      {/* Show PageNavbar only on mobile (when sidebars are hidden) */}
-      <div className="lg:hidden">
-        <PageNavbar title="Home" showBack={false} />
-      </div>
-      
-      <div className=" mx-auto  px-4 pt-4 lg:pt-0">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+      <div className="mx-auto max-w-7xl px-4 pb-6 pt-6">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           {/* Left Sidebar */}
           <div className="hidden lg:block lg:col-span-3">
             <LeftSidebar />

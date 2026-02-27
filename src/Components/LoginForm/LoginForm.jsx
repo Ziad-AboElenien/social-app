@@ -4,16 +4,17 @@ import { faFacebookF, faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { faArrowRight, faEnvelope, faLock, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useFormik } from "formik";
 import * as yup from 'yup';
-import { toast } from "react-toastify";
-import axios from "axios";
 import { useContext, useState } from "react";
 import { AuthContext } from "../../Context/Auth.context";
 import FormField from "../ui/FormField/FormField";
+import { authApi } from "../../services/api";
+import { useUI } from "../Hooks/useUI";
 
 
 export default function LoginForm() {
 
     const { setToken } = useContext(AuthContext)
+    const { showAlert } = useUI()
 
     const [inCorrect, setInCorrect] = useState(null)
 
@@ -28,24 +29,26 @@ export default function LoginForm() {
 
     async function handleSubmit(values , { setSubmitting }) {
         try {
-            const options = {
-                url: 'https://route-posts.routemisr.com/users/signin',
-                method: 'POST',
-                data: values
-            }
-            const { data } = await axios.request(options)
+            const { data } = await authApi.signin(values)
 
             if (data.success) {
                 setToken(data.data.token)
                 localStorage.setItem('token', data.data.token)
-                toast.success('Welcome Back!')
+                showAlert({
+                    type: "success",
+                    title: "Login Success",
+                    message: "Welcome back to SocialHub.",
+                })
 
-                setTimeout(() => {
-                    navigate('/')
-                }, 5000);
+                navigate('/')
             }
         } catch (error) {
-            setInCorrect(error.response.data.error)
+            setInCorrect(error.response?.data?.error || "Invalid credentials")
+            showAlert({
+                type: "error",
+                title: "Login Failed",
+                message: error.response?.data?.error || "Invalid credentials",
+            })
         } finally{
             setSubmitting(false)
         }

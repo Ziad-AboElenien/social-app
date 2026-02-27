@@ -1,62 +1,134 @@
-import { NavLink } from "react-router"
-import { Link } from "react-router"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBars, faBell, faCompass, faEnvelope, faHouse, faMagnifyingGlass, faPeopleGroup, faPlus, faShareNodes } from "@fortawesome/free-solid-svg-icons"
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBell, faBars, faHouse, faRightFromBracket, faUser } from "@fortawesome/free-solid-svg-icons";
+import { NavLink } from "react-router";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../Context/Auth.context";
+import { notificationsApi, usersApi } from "../../services/api";
+import fallbackAvatar from "../../assets/images/prof.png";
 
 export default function Navbar() {
-    return (
-        <>
-            <nav className="bg-gray-100 z-50 fixed top-0 left-0 right-0 text-lg shadow">
-                <div className="max-w-6xl container mx-auto py-4 flex justify-between">
-                    <div className="left-side flex gap-5 ">
-                        <h1>
-                            <Link className="flex space-x-1 items-center text-2xl " to="/">
-                                <FontAwesomeIcon className="text-blue-600" icon={faShareNodes} />
-                                <p className="font-bold text-black">SocialHub</p>
-                            </Link>
-                        </h1>
-                        <ul className="links hidden  md:flex gap-5">
-                            <li className="link flex items-center"><NavLink to="/" className={({ isActive }) => `${isActive && 'text-blue-500'} space-x-1 hover:text-blue-500 transition-colors duration-300`} >
-                                <FontAwesomeIcon icon={faHouse} /> Home
-                            </NavLink></li>
-                            <li className="link flex items-center">
-                                <NavLink to="/explore" className={({ isActive }) => `${isActive && 'text-blue-500'} space-x-1 hover:text-blue-500 transition-colors duration-300`}>
-                                    <FontAwesomeIcon icon={faCompass} /> Explore
-                                </NavLink>
-                            </li>
-                            <li className="link flex items-center">
-                                <NavLink to="/communications" className={({ isActive }) => `${isActive && 'text-blue-500'} space-x-1 hover:text-blue-500 transition-colors duration-300`}>
-                                    <FontAwesomeIcon icon={faPeopleGroup} /> Communications
-                                </NavLink>
-                            </li>
-                        </ul>
-                    </div>
-                    <div className="right-side hidden md:flex items-center ">
-                        <div className="relative hidden xl:block">
-                            <input className="border border-2 border-transparent bg-gray-200 rounded-2xl ps-9 px-3 min-w-80 py-1 focus:outline-0  focus:border-blue-500 transition-colors duraation-300" type="text" placeholder="Search posts,people,topics..." />
-                            <FontAwesomeIcon className="absolute top-1/2 -translate-y-1/2 left-1/25 text-gray-700" icon={faMagnifyingGlass} />
-                        </div>
-                        <div className="icons space-x-3 ps-3">
-                            <button className="notifications-btn cursor-pointer after:w-2 after:h-2 after:bg-red-500 after:absolute  relative  -after:translate-y-0.5 after:rounded-4xl">
-                                <FontAwesomeIcon icon={faBell} />
-                            </button>
-                            <button className="messages-btn cursor-pointer after:w-2 after:h-2 after:bg-red-500 after:absolute  relative  -after:translate-y-0.5 after:rounded-4xl">
-                                <FontAwesomeIcon icon={faEnvelope} />
-                            </button>
-                            <button className="bg-blue-600 text-white px-4 py-1 rounded-3xl space-x-0.5 ms-2 hover:bg-blue-500 transition-colors duration-300">
-                                <FontAwesomeIcon icon={faPlus} />
-                                <span>Create Post</span>
-                            </button>
-                        </div>
-                        
+  const { logOut } = useContext(AuthContext);
+  const [profile, setProfile] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-                    </div>
-                    <button className="md:hidden cursor-pointer ">
-                            <FontAwesomeIcon icon={faBars} />
-                        </button>
-                </div>
-            </nav>
-        </>
-    )
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [profileRes, unreadRes] = await Promise.all([
+          usersApi.getProfileData(),
+          notificationsApi.getUnreadCount(),
+        ]);
+        setProfile(profileRes.data.data.user);
+        setUnreadCount(unreadRes.data.data?.count || unreadRes.data.count || 0);
+      } catch {
+        setProfile(null);
+        setUnreadCount(0);
+      }
+    }
+    loadData();
+  }, []);
+
+  const photo = profile?.photo && !profile.photo.includes("undefined") ? profile.photo : fallbackAvatar;
+
+  return (
+    <nav className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="container mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5">
+        <NavLink to="/" className="flex items-center gap-3">
+          <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#0f3ca8] text-[9px] font-black text-white sm:h-11 sm:w-11 sm:rounded-xl sm:text-[10px]">
+            Devs
+          </div>
+          <span className="text-lg font-black tracking-tight text-[#0d1b3a] sm:text-2xl">DEVHub</span>
+        </NavLink>
+
+        <div className="hidden items-center rounded-3xl border border-slate-200 bg-slate-50 p-1 md:flex">
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `rounded-2xl px-4 py-2 text-sm font-bold transition lg:px-6 ${isActive ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`
+            }
+          >
+            <FontAwesomeIcon icon={faHouse} className="mr-2" />
+            Feed
+          </NavLink>
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              `rounded-2xl px-6 py-2 text-sm font-bold transition ${isActive ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`
+            }
+          >
+            <FontAwesomeIcon icon={faUser} className="mr-2" />
+            Profile
+          </NavLink>
+          <NavLink
+            to="/notifications"
+            className={({ isActive }) =>
+              `relative rounded-2xl px-6 py-2 text-sm font-bold transition ${isActive ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`
+            }
+          >
+            <FontAwesomeIcon icon={faBell} className="mr-2" />
+            Notifications
+            {unreadCount > 0 ? (
+              <span className="absolute right-2 top-0 rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            ) : null}
+          </NavLink>
+        </div>
+
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((s) => !s)}
+            className="flex items-center gap-2 rounded-3xl border border-slate-200 bg-slate-50 px-2 py-1 sm:px-3 sm:py-1.5"
+          >
+            <img src={photo} alt="user" className="h-8 w-8 rounded-full object-cover sm:h-10 sm:w-10" />
+            <span className="hidden text-sm font-bold text-slate-700 sm:block">{profile?.name || "user"}</span>
+            <FontAwesomeIcon icon={faBars} className="text-slate-500" />
+          </button>
+
+          {menuOpen ? (
+            <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white p-2 shadow-lg sm:w-52">
+              <NavLink
+                to="/"
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 md:hidden"
+              >
+                Feed
+              </NavLink>
+              <NavLink
+                to="/notifications"
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 md:hidden"
+              >
+                Notifications
+              </NavLink>
+              <NavLink
+                to="/profile"
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                My profile
+              </NavLink>
+              <NavLink
+                to="/saved"
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Saved posts
+              </NavLink>
+              <button
+                type="button"
+                onClick={logOut}
+                className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
+              >
+                <FontAwesomeIcon icon={faRightFromBracket} className="mr-2" />
+                Logout
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </nav>
+  );
 }
